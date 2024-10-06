@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Events\UserRegistered;
 use App\Exceptions\LoginInvalidException;
 use App\Exceptions\UserHasBeenTakenException;
+use App\Exceptions\VerifyEmailTokenInvalidException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -48,6 +49,22 @@ class AuthService
         ]);
 
         event(new UserRegistered($user));
+
+        return $user;
+    }
+
+    public function verifyEmail(string $token)
+    {
+        $user = User::where('confirmation_token', $token)->first();
+
+        if(empty($user))
+        {
+            throw new VerifyEmailTokenInvalidException();
+        }
+
+        $user->confirmation_token = null;
+        $user->email_verified_at = now();
+        $user->save();
 
         return $user;
     }

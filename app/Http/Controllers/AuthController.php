@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AuthLoginRequest;
 use App\Http\Resources\UserResource;
 use App\Http\Requests\AuthRegisterRequest;
+use App\Http\Requests\AuthVerifyEmailRequest;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,14 @@ class AuthController extends Controller
     {
         $input = $request->validated();
         $user = $this->authService->register($input['first_name'], $input['last_name'] ?? '', $input['email'], $input['password']);
+
+        return new UserResource($user);
+    }
+
+    public function verifyEmail(AuthVerifyEmailRequest $request)
+    {
+        $input = $request->validated();
+        $user = $this->authService->verifyEmail($input['token']);
 
         return new UserResource($user);
     }
