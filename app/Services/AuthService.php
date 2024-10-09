@@ -13,6 +13,8 @@ use Illuminate\Support\Str;
 
 use App\Models\User;
 use App\Models\PasswordResetToken;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class AuthService
 {
@@ -73,7 +75,20 @@ class AuthService
     }
 
     public function forgotPassword(string $email) {
-        $user = User::where('email', $email)->firstOrFail();
+        try {
+            $user = User::where('email', $email)->firstOrFail();
+        } catch(Exception $e) {
+            if($e instanceof ModelNotFoundException) {
+                $modelName = class_basename($e->getModel());
+                $apiErrorCode = $modelName . 'NotFoundException';
+                $message = $modelName . ' not found.';
+
+                return response()->json([
+                    'error' => $apiErrorCode,
+                    'message' => $message,
+                ], 404);
+            }
+        }
 
         $token =  Str::random(60);
 
